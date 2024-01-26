@@ -1,0 +1,8 @@
+ipykernel
+requests
+pandas
+numpy
+fake_useragent
+selenium
+undetected_chromedriver
+bs4
