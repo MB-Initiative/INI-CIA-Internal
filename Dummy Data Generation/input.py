@@ -1,8 +1,8 @@
 # Campaign Variables
-weeks = 30
+weeks = 8
 currency = "$"
-total_spend = 16000000
-roi = 1.2
+total_spend = 10000000
+roas = 1.6
 som = 0.15
 
 start_date = '2024-01-01'
@@ -42,7 +42,7 @@ performance_dict = {'Country':  {'UK':  [0.60],
 
 # F&F Scores
 fame_flow_dict = {
-    'Familiarity': 0.91,
+    'Familiarity': 0.84,
     'Favorability': 0.35,
     'Feeling': 0.16,
     'Fervor': 0.07,

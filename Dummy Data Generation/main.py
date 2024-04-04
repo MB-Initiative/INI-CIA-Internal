@@ -55,8 +55,6 @@ def df_apply_splits(df):
     return df
 
 
-
-
 def df_weekly_spend(df):
 
     # make a df of the total spend for each week
@@ -116,6 +114,15 @@ def df_calculations(df):
     df['Impressions'] = df['Clicks'] / (df['CTR'] / 100)
     df['Conversions'] = df['Clicks'] * np.random.uniform(0.01, 0.05)
 
+    # apply random factor to ROI and SOM
+    df['ROAS'] = roas
+    df['SOM'] = som
+
+    # for each row in df apply random factor to the ROAS and SOM
+    for i in range(len(df)):
+        df.loc[i, 'ROAS'] = roas * np.random.uniform(0.75, 1.25)
+        df.loc[i, 'SOM'] = som * np.random.uniform(0.66, 1.33)
+
     return df
 
 def df_cleanup(df):
@@ -125,8 +132,44 @@ def df_cleanup(df):
 
     return df
 
+def df_fame_flow():
 
-def df_export(df, file_name):
+    # make a new df with the fame and flow metrics
+    df = pd.DataFrame(list(fame_flow_dict.items()), columns=['Metric', 'Score'])
+
+    # Build out the dataframe to have the number of defined weeks
+    df = pd.concat([df]*weeks, ignore_index=True)
+    df['Week'] = df.groupby(['Metric']).cumcount() + 1
+
+    # Assign week 1 to the defined start date and increment the date by 7 days for each week
+    df['Date'] = pd.to_datetime(start_date) + pd.to_timedelta(df['Week'] - 1, unit='W')
+
+    seed = 0
+
+    # for loop for each metric in df filter
+    for metric in list(fame_flow_dict.keys()):
+
+        # filter df by selected metric
+        df_filt = df[df['Metric'] == metric]
+        df = df[df['Metric'] != metric]
+
+        seed = seed + 1
+
+        # randomise the values of the metric
+        df_filt['Score'] = df_filt['Score'] * np.random.uniform(0.85, 1.15, weeks)
+
+        # append the filtered df back to the original df
+        df = pd.concat([df, df_filt], ignore_index=True)
+
+        # replace any values that are equal or greater than 1 with 0.99
+        df.loc[df['Score'] >= 1, 'Score'] = 0.99
+
+        # reorder columns to be metric, week, date, score
+        df = df[['Metric', 'Week', 'Date', 'Score']]
+
+    return df
+
+def df_export(df, df2, file_name):
 
     print('Exporting data...')
 
@@ -136,8 +179,13 @@ def df_export(df, file_name):
     timestamp = datetime.datetime.fromtimestamp(time.time())
     timestampStr = timestamp.strftime("%Y%m%d")
 
-    # Save as excel
-    df.to_excel(file_path + '\\' + file_name + ' - ' + timestampStr + '.xlsx', index=False)
+    # excel writer multiple tabs for df1 and df2
+    writer = pd.ExcelWriter(file_path + '\\' + file_name + ' - ' + timestampStr + '.xlsx', engine='xlsxwriter')
+
+    df.to_excel(writer, sheet_name='Performance', index=False)
+    df2.to_excel(writer, sheet_name='F-Metrics', index=False)
+
+    writer.close()
 
 
 def main():
@@ -148,7 +196,10 @@ def main():
     df = df_weekly_spend(df)
     df = df_calculations(df)
     df = df_cleanup(df)
-    df_export(df, "Dashboard Data")
+
+    df_ff = df_fame_flow()
+
+    df_export(df, df_ff, "Dummy Dashboard Data")
 
 
 if __name__ == '__main__':
