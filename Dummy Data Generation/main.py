@@ -89,9 +89,6 @@ def df_weekly_spend(df):
         # drop variable factor
         df_country.drop(['variable_factor'], axis=1, inplace=True)
 
-        # round the total spend to 2 decimal places
-        df_country['Spend'] = df_country['Spend'].round(2)
-
         #df append
         df_spend = pd.concat([df_spend, df_country], ignore_index=True)
 
