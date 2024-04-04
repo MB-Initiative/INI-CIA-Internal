@@ -3,6 +3,7 @@ import numpy as np
 import datetime
 import time
 import os
+from tqdm import tqdm
 
 np.random.seed(1)
 
@@ -120,7 +121,7 @@ def df_calculations(df):
     range_lo = 0.5
     range_hi = 1.5
 
-    for i in range(len(df)):
+    for i in tqdm(range(len(df))):
         df.loc[i, 'CPC'] = df.loc[i, 'CPC'] * np.random.uniform(range_lo, range_hi)
         df.loc[i, 'CTR'] = df.loc[i, 'CTR'] * np.random.uniform(range_lo, range_hi)
         df.loc[i, 'Eng'] = df.loc[i, 'Eng'] * np.random.uniform(range_lo, range_hi)
@@ -174,7 +175,7 @@ def df_fame_flow():
 
     seed = 0
 
-    for i in range(len(df)):
+    for i in tqdm(range(len(df))):
 
         seed = seed + 1
 
@@ -189,8 +190,6 @@ def df_fame_flow():
     return df
 
 def df_export(df, df2, file_name):
-
-    print('Exporting data...')
 
     # get cwd
     file_path = os.getcwd()
@@ -213,6 +212,9 @@ def df_export(df, df2, file_name):
 
 def main():
 
+    print('-' * 40)
+    print('Generating Performance data...')
+
     df = df_build_from_input()
     df = df_apply_weeks(df)
     df = df_apply_splits(df)
@@ -220,10 +222,16 @@ def main():
     df = df_calculations(df)
     df = df_cleanup(df)
 
+    print('-' * 40)
+    print('Generating F&F data...')
     df_ff = df_fame_flow()
+
+    print('-' * 40)
+    print('Exporting data...')
 
     df_export(df, df_ff, "Dummy Dashboard Data")
 
+    print('-' * 40)
 
 if __name__ == '__main__':
 
