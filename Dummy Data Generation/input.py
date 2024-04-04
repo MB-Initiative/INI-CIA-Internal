@@ -32,10 +32,10 @@ performance_dict = {'Country':  {'UK':  [0.60],
                                  'P5':  [0.10]
                                  },
                  
-                                                    # Mix, CPC, CTR
-                    'Channel':  {'Paid Social':     ['0.4', '2.5', '2.0'],
-                                 'Online Video':    ['0.35', '2.0', '1.5'],
-                                 'Display':         ['0.25', '1.5', '1.0']
+                                                    # Mix, CPC, CTR, Eng Rate, VCR
+                    'Channel':  {'Paid Social':     ['0.4', '2.5', '2.0', '1.5', '0.66'],
+                                 'Online Video':    ['0.35', '2.0', '1.5', '2.5', '0.55'],
+                                 'Display':         ['0.25', '1.5', '1.0', '3.2', '0.44']
                                  },
 
 }

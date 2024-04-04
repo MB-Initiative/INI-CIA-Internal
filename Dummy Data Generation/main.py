@@ -43,7 +43,7 @@ def df_apply_weeks(df):
 def df_apply_splits(df):
 
     # Apply channel splits to the dataframe
-    df['channel_split'] = df['Channel'].apply(lambda x: float(performance_dict['Channel'][x][0]) * np.random.uniform(0.8, 1.1))
+    df['channel_split'] = df['Channel'].apply(lambda x: float(performance_dict['Channel'][x][0]) * np.random.uniform(0.8, 1.2))
 
     # Normalise the splits so that they always sum to 100%
     df['channel_split'] = df.groupby(['Country', 'Category', 'Market', 'Product', 'Week'], group_keys=False)['channel_split'].apply(lambda x: x / x.sum())
@@ -107,21 +107,36 @@ def df_calculations(df):
     # Calculate the spend, CPC, CTR, Clicks, Impressions and Conversions
     df['Spend'] = df['Spend'] * df['channel_split'].astype(float) * df['category_split'].astype(float) * df['market_split'].astype(float) * df['product_split'].astype(float)
 
-    df['CPC'] = df['Channel'].apply(lambda x: float(performance_dict['Channel'][x][1]) * np.random.uniform(0.8, 1.1))
-    df['CTR'] = df['Channel'].apply(lambda x: float(performance_dict['Channel'][x][2]) * np.random.uniform(0.8, 1.1))
-
-    df['Clicks'] = df['Spend'] / df['CPC']
-    df['Impressions'] = df['Clicks'] / (df['CTR'] / 100)
-    df['Conversions'] = df['Clicks'] * np.random.uniform(0.01, 0.05)
+    df['CPC'] = df['Channel'].apply(lambda x: float(performance_dict['Channel'][x][1]))
+    df['CTR'] = df['Channel'].apply(lambda x: float(performance_dict['Channel'][x][2]))
+    df['Eng'] = df['Channel'].apply(lambda x: float(performance_dict['Channel'][x][3]))
+    df['VCR'] = df['Channel'].apply(lambda x: float(performance_dict['Channel'][x][4]))
 
     # apply random factor to ROI and SOM
     df['ROAS'] = roas
     df['SOM'] = som
 
-    # for each row in df apply random factor to the ROAS and SOM
+    # for each row in df apply random factor to the ROAS and SO
+    range_lo = 0.5
+    range_hi = 1.5
+
     for i in range(len(df)):
-        df.loc[i, 'ROAS'] = roas * np.random.uniform(0.75, 1.25)
-        df.loc[i, 'SOM'] = som * np.random.uniform(0.66, 1.33)
+        df.loc[i, 'CPC'] = df.loc[i, 'CPC'] * np.random.uniform(range_lo, range_hi)
+        df.loc[i, 'CTR'] = df.loc[i, 'CTR'] * np.random.uniform(range_lo, range_hi)
+        df.loc[i, 'Eng'] = df.loc[i, 'Eng'] * np.random.uniform(range_lo, range_hi)
+        df.loc[i, 'VCR'] = df.loc[i, 'VCR'] * np.random.uniform(range_lo, range_hi)
+        df.loc[i, 'SOM'] = df.loc[i, 'SOM'] * np.random.uniform(range_lo, range_hi)
+        df.loc[i, 'ROAS'] = df.loc[i, 'ROAS'] * np.random.uniform(range_lo, range_hi)
+
+    df['Clicks'] = df['Spend'] / df['CPC']
+    df['Impressions'] = df['Clicks'] / (df['CTR'] / 100)
+    df['Engagements'] = df['Clicks'] * (df['Eng'] / 100)
+    df['Conversions'] = df['Clicks'] * np.random.uniform(0.01, 0.05)
+    df['Completed Views'] = df['Impressions'] * df['VCR']
+    df['Revenue'] = df['Spend'] * df['ROAS']
+
+    #drop roas
+    df.drop(['ROAS', 'CPC', 'CTR', 'Eng', 'VCR'], axis=1, inplace=True)
 
     return df
 
@@ -144,28 +159,32 @@ def df_fame_flow():
     # Assign week 1 to the defined start date and increment the date by 7 days for each week
     df['Date'] = pd.to_datetime(start_date) + pd.to_timedelta(df['Week'] - 1, unit='W')
 
+    df_template = df[0:0].copy()
+
+    # for country in dict print country
+    for country in list(performance_dict['Country'].keys()):
+
+        df_country = df.copy()
+        df_country['Country'] = country
+
+        # append the country df to the template df
+        df_template = pd.concat([df_template, df_country], ignore_index=True)
+
+    df = df_template
+
     seed = 0
 
-    # for loop for each metric in df filter
-    for metric in list(fame_flow_dict.keys()):
-
-        # filter df by selected metric
-        df_filt = df[df['Metric'] == metric]
-        df = df[df['Metric'] != metric]
+    for i in range(len(df)):
 
         seed = seed + 1
 
-        # randomise the values of the metric
-        df_filt['Score'] = df_filt['Score'] * np.random.uniform(0.85, 1.15, weeks)
+        range_lo = 0.5
+        range_hi = 1.5
 
-        # append the filtered df back to the original df
-        df = pd.concat([df, df_filt], ignore_index=True)
-
-        # replace any values that are equal or greater than 1 with 0.99
-        df.loc[df['Score'] >= 1, 'Score'] = 0.99
-
-        # reorder columns to be metric, week, date, score
-        df = df[['Metric', 'Week', 'Date', 'Score']]
+        df.loc[i, 'Score'] = df.loc[i, 'Score'] * np.random.uniform(range_lo, range_hi)
+ 
+    #replace any values that are equal or greater than 1 with 0.99
+    df.loc[df['Score'] >= 1, 'Score'] = 0.99
 
     return df
 
@@ -178,6 +197,10 @@ def df_export(df, df2, file_name):
 
     timestamp = datetime.datetime.fromtimestamp(time.time())
     timestampStr = timestamp.strftime("%Y%m%d")
+
+    # reorder columns to be metric, week, date, score
+    df = df[['Country', 'Channel', 'Category', 'Market', 'Product', 'Week', 'Date', 'Spend', 'Impressions', 'Clicks', 'Engagements', 'Conversions', 'Completed Views', 'Revenue', 'SOM']]
+    df2 = df2[['Country', 'Metric', 'Week', 'Date', 'Score']]
 
     # excel writer multiple tabs for df1 and df2
     writer = pd.ExcelWriter(file_path + '\\' + file_name + ' - ' + timestampStr + '.xlsx', engine='xlsxwriter')
