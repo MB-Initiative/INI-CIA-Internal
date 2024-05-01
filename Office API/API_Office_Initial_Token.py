@@ -1,7 +1,7 @@
 import API_Office
 
-id_path = 'src/API_Office_id.json'
-token_path = 'src/API_Office_token.json'
+id_path = 'API_Office_id.json'
+token_path = 'API_Office_token.json'
 
 scopes = [
     'offline_access',

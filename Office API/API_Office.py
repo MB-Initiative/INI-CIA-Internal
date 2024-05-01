@@ -52,7 +52,7 @@ class API(Log):
                 self.post_initial_token(scopes, self._token_path)
  
     def post_initial_token(self, scopes, token_path = None):
-        
+        '''POST: get initial access token'''
         if not token_path:
             token_path = self._token_path
         
@@ -100,7 +100,7 @@ class API(Log):
         return response
         
     def post_refresh_token(self, token_path = None):
-        
+        '''POST: refresh using refresh token saved in token_path'''
         if not token_path:
             token_path = self._token_path
             
@@ -132,7 +132,7 @@ class API(Log):
         return response    
     
     def get_raw(self, url):
-        
+        '''run GET given a url (do not include url_start)'''
         response = requests.get(
             self.url_start+url, headers={'Authorization': 'Bearer ' + self._token_data['access_token']})
         
@@ -152,11 +152,11 @@ class API(Log):
         return response
     
     def get(self, url):
-
+        '''return the result of GET in dictionary'''
         return self.get_raw(url).json()
     
     def post_raw(self, url, data = ''):
-        
+        '''run POST given a url (do not include url_start) data in dictionary'''
         response = requests.post(
             self.url_start+url, headers={
                 'Authorization': 'Bearer ' + self._token_data['access_token'],
@@ -185,7 +185,7 @@ class API(Log):
         return response
     
     def delete_raw(self, url, data = ''):
-        
+        '''run DELETE given a url (do not include url_start) data in dictionary'''
         response = requests.delete(
             self.url_start+url, headers={
                 'Authorization': 'Bearer ' + self._token_data['access_token'],
@@ -214,7 +214,7 @@ class API(Log):
         return response
     
     def EditNestDict_step(self, Dict, prefix_list = []):
-   
+        '''given a dictionary with multiple nested dictionaries, return a flat disctionary. The new keys will be all the nested keys joined by _'''
         Dict_new = {}
 
         for k,v in Dict.items():
@@ -230,13 +230,13 @@ class API(Log):
         return Dict_new, prefix_list  
     
     def EditNestDict(self, Dict):
-   
+        '''only take the dictionary output, prefix_list is not needed'''
         return self.EditNestDict_step(Dict, prefix_list = [])[0]
     
     def ToTable(
         self, rawres, nested = False,
         file_sep = '\t', return_str = False, keep_head = True):
-        
+        '''change teh raw output into a table (not used atm)'''
         cols = []
         res = ''
             
@@ -286,6 +286,7 @@ class Mail(API):
         API.__init__(self, id_path, token_path, scopes)
         
     def get_mail_folders(self, user = 'me', mailFolder = None):
+        '''run GET to get info of folder; if mailFolder = None get all folders of the user'''
         ## /me/mailFolders/{optional mailFolder}?includeHiddenFolders=true&top=100
         ## /users/{user}/mailFolders/{optiona lmailFolder}?includeHiddenFolders=true&top=100
         
@@ -303,6 +304,7 @@ class Mail(API):
     
     def get_children_folder(
         self, user = 'me', mailFolder = 'Inbox'):
+        '''run GET to get all children folders'''
         ## /me/mailFolders/{mailFolder}/childFolders?includeHiddenFolders=true
         ## /users/{user}/...
         
@@ -317,7 +319,7 @@ class Mail(API):
     
     def get_children_folder_all(
         self, user = 'me', mailFolder = 'Inbox'):
-        
+        '''run get_children_folder to get all layers of folders'''
         response = self.get_mail_folders(user, mailFolder)
             
         if mailFolder:
@@ -352,6 +354,7 @@ class Mail(API):
         messageID = None,
         top = 100, skip = 0
     ):
+        '''run GET to get a certain number of messages given user and mailFolder, use skip to keep checking more messages (e.g. top 200 skip 100 is 101 to 200)'''
 # @odata.etag (default)
 # id (default)
 # createdDateTime
@@ -416,7 +419,7 @@ class Mail(API):
         sender_list = [], subject_list = [], body_list = [], 
         min_date = None, max_date = None, date_format = '%Y-%m-%d'
     ):
-        #### message_response_value must be the ['value'] from the response dictionary
+        '''filter the list from ['value'] of the dictionary output of get_message_list'''
         dates = []
         filtered = []
         
@@ -468,6 +471,7 @@ class Mail(API):
         sender_list = [], subject_list = [], body_list = [], 
         min_date = None, max_date = None, date_format = '%Y-%m-%d'
     ):
+        '''run get_message_list and filter_message_single until finds the required number of messages'''
         
         self.logger.info('Account: %s; Folder: %s; Count: %s'%(user, mailFolder, count) )
         self.logger.info(
@@ -546,6 +550,7 @@ class Mail(API):
     
     def get_attachment_list(
         self, messageID, user = 'me'):
+        '''run GET to get the attachment info of a message'''
         ## me/messages/{messageID}/attachments
         ## users/{user}/...
         
@@ -563,7 +568,7 @@ class Mail(API):
     
     def save_attachment_single(
         self, attachment_response, attachment_keyword = [], save_path = ''):
-        
+        '''filter the result of get_attachment_list and save the file to the save_path'''
         ## by attachmentID & io
         # if user == 'me':
         #     url = user
@@ -610,6 +615,7 @@ class Mail(API):
         min_date = None, max_date = None, date_format = '%Y-%m-%d',
         attachment_keyword = [], save_path = ''
     ):
+        '''run get_message_filtered, get_attachment_list, save_attachment_single to find and save attachments'''
         self.logger.info('---- Save attachments from filtered messages ----')
         
         select = ['hasAttachments', 'receivedDateTime', 'sender', 'subject']
@@ -633,6 +639,7 @@ class Mail(API):
         return all_file_names
     
     def post_send_message(self, to, subject, content = '', cc = [], user = 'me'):
+        '''run POST to send out an email'''
         ## me/sendMail
         ## users/{user}/...
         
@@ -705,7 +712,7 @@ class Mail(API):
         return self.post_raw(url, data)
         
     def post_move_message(self, messageID, folderID, user = 'me'):
-        
+        '''run POST to move a message to a folder'''
         if user == 'me':
             url = user
         else:
@@ -725,6 +732,7 @@ class Mail(API):
         sender_list = [], subject_list = [], body_list = [], 
         min_date = None, max_date = None, date_format = '%Y-%m-%d'
     ):
+        '''run get_message_filtered and then post_move_message'''
         self.logger.info('---- Filter and move messages ----')
         
         select = ['hasAttachments', 'receivedDateTime', 'sender', 'subject']
@@ -747,7 +755,7 @@ class Mail(API):
     
     
     def delete_message(self, messageID, user = 'me'):
-        
+        '''run DELETE to delete a message'''
         if user == 'me':
             url = user
         else:
@@ -766,6 +774,7 @@ class Mail(API):
         sender_list = [], subject_list = [], body_list = [], 
         min_date = None, max_date = None, date_format = '%Y-%m-%d'
     ):
+        '''run get_message_filtered and then delete_message'''
         self.logger.info('---- Filter and delete messages ----')
         
         select = ['hasAttachments', 'receivedDateTime', 'sender', 'subject']
@@ -801,7 +810,7 @@ class File(API):
         API.__init__(self, id_path, token_path, scopes)
      
     def url_encode(self, url):
-        
+        '''required to process shared onedrive links'''
         message_bytes = url.encode('ascii')
         base64_bytes = base64.b64encode(message_bytes)
         base64_message = base64_bytes.decode('ascii')
@@ -811,6 +820,7 @@ class File(API):
         return base64_message_edit
     
     def get_shared_bylink(self, url):
+        '''run GET to get info of a file from onedrive shared link'''
         url_encode = self.url_encode(url)
         url_api = '/shares/%s/driveItem'%(url_encode)
         
@@ -821,6 +831,7 @@ class File(API):
     def save_shared_bylink(
         self, url, save = True, file_path = '', file_name_custom = None, file_name_timestamp = True,
         save_cols = ['@microsoft.graph.downloadUrl', 'name', 'lastModifiedDateTime', 'lastModifiedBy_user_email']):
+        '''run get_shared_bylink, return selected info and save the file if file_path is not empty'''
     # '@odata.context', 
     # '@microsoft.graph.downloadUrl', 
     # 'createdDateTime',
@@ -845,38 +856,38 @@ class File(API):
     # 'fileSystemInfo_lastModifiedDateTime', 
     # 'shared_scope'        
             
-            response = self.get_shared_bylink(url)
-            response_flat = self.EditNestDict(response)
-            url_download = response_flat['@microsoft.graph.downloadUrl']
-            if save_cols != []:
-                save_info = {k:response_flat[k] for k in save_cols if k in response_flat.keys()}
+        response = self.get_shared_bylink(url)
+        response_flat = self.EditNestDict(response)
+        url_download = response_flat['@microsoft.graph.downloadUrl']
+        if save_cols != []:
+            save_info = {k:response_flat[k] for k in save_cols if k in response_flat.keys()}
+        else:
+            save_info = response_flat
+        if save:
+            if not file_name_custom:
+                file_name = file_path + response_flat['name']
             else:
-                save_info = response_flat
-            if save:
-                if not file_name_custom:
-                    file_name = file_path + response_flat['name']
-                else:
-                    file_name = file_path + file_name_custom
-                
-                if file_name_timestamp:
-                    file_name = file_name.split('.')[0] + '_' + response_flat['lastModifiedDateTime'].replace(':', '') + '.' + file_name.split('.')[1]
-                
-                r = requests.get(url_download, allow_redirects=True)
-                open(file_name, 'wb').write(r.content)
-                
-                self.logger.info('Saved to ' + file_name)
-                self.logger.info(save_info)
-                                 
-                return file_name, save_info
+                file_name = file_path + file_name_custom
             
-            else:
-                self.logger.info('Download link ' + url_download)
-                self.logger.info(save_info)
-                print(url_download)
-                return url_download, save_info
+            if file_name_timestamp:
+                file_name = file_name.split('.')[0] + '_' + response_flat['lastModifiedDateTime'].replace(':', '') + '.' + file_name.split('.')[1]
+            
+            r = requests.get(url_download, allow_redirects=True)
+            open(file_name, 'wb').write(r.content)
+            
+            self.logger.info('Saved to ' + file_name)
+            self.logger.info(save_info)
+                                
+            return file_name, save_info
+        
+        else:
+            self.logger.info('Download link ' + url_download)
+            self.logger.info(save_info)
+            print(url_download)
+            return url_download, save_info
     
     def get_drives(self, user = 'me', id = None):
-
+        '''run GET to get onedrive info given a user or a drive id'''
         ## /me/drives
         ## /users/{id}/drives
         ## /groups/{groupId}/drives
@@ -896,7 +907,7 @@ class File(API):
             self, user = 'me', id = None,
             select = ['driveType', 'id', 'owner_user_displayName', 'owner_user_id']    
         ):
-
+        '''process output of get_drives'''
         # 'driveType'
         # 'id'
         # 'owner_user_displayName'
@@ -922,6 +933,7 @@ class File(API):
     def get_drive_children(
         self, link = None, user = 'me', id_drive = None, id_item = None
     ):
+        '''run GET to get children folders of a folder'''
         ## me/drive
         ## drives/{id_drive}
         ## shares/{url encoded}
@@ -972,7 +984,7 @@ class File(API):
                 'remoteItem_folder_childCount'
             ]
         ):
-
+        '''process output of get_drive_children'''
     # '@microsoft.graph.downloadUrl' #### only files ####
     # 'createdDateTime'
     # 'cTag'
@@ -1083,6 +1095,7 @@ class File(API):
                 'remoteItem_folder_childCount'
             ]
         ):
+            '''repeats show_get_drive_children until all folders are checked, return the files with their folder paths'''
             res = self.show_get_drive_children(link, user, id_drive, id_item, True, select, select_combine_remote)
             for k in res.keys():
                 for i in range(len(res[k])):
@@ -1116,7 +1129,7 @@ class File(API):
         ## shares/{url encoded}
 
         ## https://onedrive.live.com/?id=D898DCBA467A2F70%212796&cid=D898DCBA467A2F70&...
-
+        '''run GET to get info of a file (download link will expire, if so rerun the function using the item id and drive id)'''
         if link:
             if 'onedrive.live.com' in link:
                 id_drive = link.split('&')[1].split('=')[-1]
@@ -1152,6 +1165,7 @@ class File(API):
                 'remoteItem_size', 
             ]
         ):
+            '''process output of get_files'''
             raw = self.get_files(link, user, id_drive, id_item)
             edit = [self.EditNestDict(raw)]
             
