@@ -202,7 +202,8 @@ def df_export(df, df2, file_name):
     df2 = df2[['Country', 'Metric', 'Week', 'Date', 'Score']]
 
     # excel writer multiple tabs for df1 and df2
-    writer = pd.ExcelWriter(file_path + '\\' + file_name + ' - ' + timestampStr + '.xlsx', engine='xlsxwriter')
+    writer = pd.ExcelWriter(file_path + '\\Dummy Data Generation\\' + file_name + ' - ' + timestampStr + '.xlsx', engine='xlsxwriter')
+    print(file_path + '\\' + file_name + ' - ' + timestampStr + '.xlsx')
 
     df.to_excel(writer, sheet_name='Performance', index=False)
     df2.to_excel(writer, sheet_name='F-Metrics', index=False)

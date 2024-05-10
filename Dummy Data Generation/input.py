@@ -1,21 +1,26 @@
 # Campaign Variables
-weeks = 8
+weeks = 52
 currency = "$"
 total_spend = 10000000
 roas = 1.6
 som = 0.15
 
-start_date = '2024-01-01'
+start_date = '2023-01-01'
 
                                         # Weighting
-performance_dict = {'Country':  {'UK':  [0.60],
-                                 'FR':  [0.25],
-                                 'DE':  [0.15]
+performance_dict = {'Country':  {'DE':  [0.33],
+                                 'UK':  [0.24],
+                                 'FR':  [0.15],
+                                 'IT':  [0.10],
+                                 'ES':  [0.08],
+                                 'TR':  [0.06],
+                                 'AT':  [0.04],
                                  },
 
                                         # Weighting
-                    'Category': {'C1':  [0.75],
-                                 'C2':  [0.25]
+                    'Category': {'C1':  [0.70],
+                                 'C2':  [0.20],
+                                 'C3':  [0.10],
                                  },
 
                                         # Weighting
