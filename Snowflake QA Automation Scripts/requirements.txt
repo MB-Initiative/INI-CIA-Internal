@@ -1,0 +1,7 @@
+pandas
+numpy
+openpyxl
+sqlalchemy
+pyodbc
+snowflake-sqlalchemy
+snowflake-connector-python[pandas]
